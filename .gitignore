@@ -1,0 +1,10 @@
+#ESP-IDF
+firmware/FT_gateway/build/
+firmware/FT_gateway/sdkconfig.old
+firmware/FT_gateway/managed_components/
+firmware/FT_gateway/.metadata/
+
+#eclipse
+firmware/FT_gateway/.cproject
+firmware/FT_gateway/.project
+firmware/FT_gateway/.settings/*
