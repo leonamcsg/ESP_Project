@@ -1,1 +1,9 @@
-/build/
+#ESP-IDF
+build/
+sdkconfig.old
+.metadata/
+
+#eclipse
+.cproject
+.project
+.settings/*
