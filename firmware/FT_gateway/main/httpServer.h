@@ -54,6 +54,12 @@
 	X(app_js,				"/app.js",				"application/javascript", _binary_app_js_start, 				_binary_app_js_end				) \
 	X(favicon_ico,			"/favicon_ico",			"image/x-icon"			, _binary_favicon_ico_start, 			_binary_favicon_ico_end			)
 
+#define OTA_UPDATE_PENDING 		0
+#define OTA_UPDATE_SUCCESSFUL	1
+#define OTA_UPDATE_FAILED		-1
+
+// Firmware update status
+extern int g_fw_update_status;
 
 /**************************
 **		STRUCTURES		 **
@@ -108,6 +114,11 @@ void httpServer_start(void);
  * Stops the HTTP server.
  */
 void httpServer_stop(void);
+
+/**
+ * Timer callback function which calls esp_restart upon successful firmware update.
+ */
+void http_server_fw_update_reset_callback(void *arg);
 
 
 /**************************

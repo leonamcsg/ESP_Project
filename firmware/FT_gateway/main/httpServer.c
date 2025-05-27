@@ -18,6 +18,7 @@
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "freertos/idf_additions.h"
+#include "esp_timer.h"
 
 // Personal libraries
 #include "httpServer.h"
@@ -36,6 +37,19 @@ static const char TAG[] = "http_server";
 
 // WiFi connect status
 http_server_wifi_connect_status_e g_wifi_connect_status = NONE;
+
+int g_fw_update_status = OTA_UPDATE_PENDING;
+
+/**
+ * ESP32 timer configuration passed to esp_timer_create.
+ */
+const esp_timer_create_args_t fw_update_reset_args = {
+		.callback = &http_server_fw_update_reset_callback,
+		.arg = NULL,
+		.dispatch_method = ESP_TIMER_TASK,
+		.name = "fw_update_reset"
+};
+esp_timer_handle_t fw_update_reset;
 
 // HTTP server task handle
 static httpd_handle_t http_server_handle = NULL; ///> used on start and stop server
@@ -61,6 +75,33 @@ static QueueHandle_t http_server_monitor_queue_handle;
 
 
 	/* Static Functions */
+
+// OTA functions //
+
+/**
+ * Checks the g_fw_update_status and creates the fw_update_reset timer if g_fw_update_status is true.
+ */
+static void http_server_fw_update_reset_timer(void)
+{
+	if (g_fw_update_status == OTA_UPDATE_SUCCESSFUL)
+	{
+		ESP_LOGI(TAG, "http_server_fw_update_reset_timer: FW updated successful starting FW update reset timer");
+
+		// Give the web page a chance to receive an acknowledge back and initialize the timer
+		ESP_ERROR_CHECK(esp_timer_create(&fw_update_reset_args, &fw_update_reset));
+		ESP_ERROR_CHECK(esp_timer_start_once(fw_update_reset, 8000000));
+	}
+	else
+	{
+		ESP_LOGI(TAG, "http_server_fw_update_reset_timer: FW update unsuccessful");
+	}
+}
+
+void http_server_fw_update_reset_callback(void *arg)
+{
+	ESP_LOGI(TAG, "http_server_fw_update_reset_callback: Timer timed-out, restarting the device");
+	esp_restart();
+}
 
 // FreeRTOS functions
 static void httpServer_freeRTOS_monitor(void * parameter);
@@ -141,13 +182,16 @@ static void httpServer_freeRTOS_monitor(void * parameter)
 					g_wifi_connect_status = HTTP_WIFI_STATUS_CONNECT_FAILED;
 					break;
 					
-//				case HTTP_OTA_UPDATE_SUCCESSFULL:
-//					ESP_LOGI(TAG, "HTTP_OTA_UPDATE_SUCCESSFULL");
-//					break;
-//					
-//				case HTTP_OTA_UPDATE_FAILED:
-//					ESP_LOGI(TAG, "HTTP_OTA_UPDATE_FAILED");
-//					break;
+				case HTTP_OTA_UPDATE_SUCCESSFULL:
+					ESP_LOGI(TAG, "HTTP_OTA_UPDATE_SUCCESSFULL");
+					g_fw_update_status = OTA_UPDATE_SUCCESSFUL;
+					http_server_fw_update_reset_timer();
+					break;
+					
+				case HTTP_OTA_UPDATE_FAILED:
+					ESP_LOGI(TAG, "HTTP_OTA_UPDATE_FAILED");
+					g_fw_update_status = OTA_UPDATE_FAILED;
+					break;
 					
 				default:
 					break;
