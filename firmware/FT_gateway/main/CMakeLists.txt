@@ -8,6 +8,7 @@ idf_component_register(
     		"httpServer.c"
     		"router.c"
 			"dateTimeNTP.c"
+			"otaUpdate.c"
     INCLUDE_DIRS	"."
     EMBED_FILES	"webPage/app.css"
     			"webPage/app.js"

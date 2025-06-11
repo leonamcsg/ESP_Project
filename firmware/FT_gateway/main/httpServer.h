@@ -38,9 +38,7 @@
 #define X_MACRO_HTTP_SERVER_STATE_LIST	\
 	X(0, HTTP_WIFI_CONNECT_INIT			) \
 	X(1, HTTP_WIFI_CONNECT_SUCCESS		) \
-	X(2, HTTP_WIFI_CONNECT_FAIL			) \
-	X(3, HTTP_OTA_UPDATE_SUCCESSFULL	) \
-	X(4, HTTP_OTA_UPDATE_FAILED			)
+	X(2, HTTP_WIFI_CONNECT_FAIL			)
 
 /**
  * @brief Creating Routes with X_MACRO
@@ -53,13 +51,6 @@
 	X(app_css,				"/app.css",				"text/css"				, _binary_app_css_start, 				_binary_app_css_end				) \
 	X(app_js,				"/app.js",				"application/javascript", _binary_app_js_start, 				_binary_app_js_end				) \
 	X(favicon_ico,			"/favicon_ico",			"image/x-icon"			, _binary_favicon_ico_start, 			_binary_favicon_ico_end			)
-
-#define OTA_UPDATE_PENDING 		0
-#define OTA_UPDATE_SUCCESSFUL	1
-#define OTA_UPDATE_FAILED		-1
-
-// Firmware update status
-extern int g_fw_update_status;
 
 /**************************
 **		STRUCTURES		 **
@@ -118,7 +109,7 @@ void httpServer_stop(void);
 /**
  * Timer callback function which calls esp_restart upon successful firmware update.
  */
-void http_server_fw_update_reset_callback(void *arg);
+void ota_fw_update_reset_callback(void *arg);
 
 
 /**************************

@@ -9,4 +9,4 @@ sdkconfig.old
 .settings/*
 
 #vscode
-.vscode/
+.vscode/*
