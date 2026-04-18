@@ -3,7 +3,7 @@
  * @brief 
  * @details
  * @date 15 de nov. de 2024
- * @author Luiz Carlos
+ * @author Isabella Vecchi
  */
 
 #ifndef MAIN_LIB_LEDRGB_H_
@@ -25,9 +25,6 @@
 /**************************
 **		DEFINITIONS		 **
 **************************/
-
-#define TRUE  1
-#define FALSE 0
 
 #define LED_PWM_SPEED LEDC_LOW_SPEED_MODE
 #define LED_PWM_TIMER_INDEX LEDC_TIMER_1

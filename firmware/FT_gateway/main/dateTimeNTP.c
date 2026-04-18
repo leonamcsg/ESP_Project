@@ -21,6 +21,8 @@
 #include <errno.h>
 
 // ESP libraries
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "sys/socket.h"     // for socket
 #include "netdb.h"          // for gethostnameby
 #include "unistd.h"         // for closing sockets
@@ -67,12 +69,6 @@ char date_str[DATE_LEN]={0}, time_str[TIME_LEN]={0};
 /* Static Functions */
 
 /**
- * @brief Event callback function
- * 
- */
-static void dateTimeNTP_wifiApp_connectedEvents(void);
-
-/**
  * @brief Callback function for NTP date and time queries
  * 
  */
@@ -84,6 +80,7 @@ static void dateTimeNTP_update_task(void *pvParameter);
  */
 static void ntp_fetchData(void);
 
+static void dateTimeNTP_wifiApp_connectedEvents(void);
 
 
 /**************************
@@ -102,7 +99,10 @@ char* dateTimeNTP_getData(void)
 void dateTimeNTP_setup(void)
 {
 	// Set the wifi connected event callback function
-	wifiApp_setCallback(dateTimeNTP_wifiApp_connectedEvents);
+	wifiApp_setCallbacks(
+        NULL,
+        dateTimeNTP_wifiApp_connectedEvents
+    );
 }
 
 static void dateTimeNTP_wifiApp_connectedEvents(void)
@@ -110,13 +110,17 @@ static void dateTimeNTP_wifiApp_connectedEvents(void)
 	ESP_LOGI(TAG, "WiFi Application Connected!");
 
 	// Start the fetch dateTime Task
-	xTaskCreatePinnedToCore(	&dateTimeNTP_update_task,
-								"router_fetchDateTime",
-								NTP_DATE_TIME_TASK_STACK_SIZE,
-								NULL,
-								NTP_DATE_TIME_TASK_PRIORITY,
-								NULL,
-								NTP_DATE_TIME_TASK_CORE_ID);
+	CREATE_TASK(&dateTimeNTP_update_task,
+                "router_fetchDateTime",
+                NTP_DATE_TIME_TASK_STACK_SIZE,
+                NULL,
+                NTP_DATE_TIME_TASK_PRIORITY,
+#if defined BOARD_ESP32C6
+				NULL);
+#elif defined BOARD_ESP32S3
+				NULL,
+				NTP_DATE_TIME_TASK_CORE);
+#endif
 }
 
 static void dateTimeNTP_update_task(void *pvParameter)
@@ -124,7 +128,6 @@ static void dateTimeNTP_update_task(void *pvParameter)
     for(;;)
 	{
         ntp_fetchData();
-		// displayOled_printDateTime(date_str, time_str);
         vTaskDelay(30000 / portTICK_PERIOD_MS); // Sync every 30 seconds
     }
 }
